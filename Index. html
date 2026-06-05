@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>আমার টাস্ক অ্যাপ</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h2 { color: #333; margin-bottom: 20px; }
+    .input-box { display: flex; gap: 10px; margin-bottom: 20px; }
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:hover { background: #0056b3; }
+    ul { list-style: none; padding: 0; text-align: left; }
+    li {
+      background: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 5px solid #007bff;
+    }
+    .delete-btn {
+      background: #dc3545;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    .delete-btn:hover { background: #bd2130; }
+    #install-section {
+      margin-top: 20px;
+      display: none;
+    }
+    .install-btn { background: #28a745; width: 100%; }
+    .install-btn:hover { background: #218838; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>📝 আমার টাস্ক অ্যাপ</h2>
+    
+    <div class="input-box">
+      <input type="text" id="task-input" placeholder="নতুন কাজ লিখুন...">
+      <button onclick="addTask()">যোগ করুন</button>
+    </div>
+
+    <ul id="task-list"></ul>
+
+    <!-- ডাউনলোড বা ইনস্টল করার বাটন -->
+    <div id="install-section">
+      <p style="font-size: 14px; color: #666;">অ্যাপটি মোবাইলে/পিসিতে ডাউনলোড করুন:</p>
+      <button class="install-btn" id="install-btn">ডাউনলোড অ্যাপ (Install)</button>
+    </div>
+  </div>
+
+  <script>
+    // টাস্ক যোগ করার কোড
+    function addTask() {
+      const input = document.getElementById('task-input');
+      const taskText = input.value.trim();
+      if (taskText === '') return;
+
+      const ul = document.getElementById('task-list');
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${taskText}</span> <button class="delete-btn" onclick="this.parentElement.remove()">মুছুন</button>`;
+      
+      ul.appendChild(li);
+      input.value = '';
+    }
+
+    // Service Worker Register করার কোড
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log('Service Worker Active'))
+          .catch(err => console.error('Service Worker Error', err));
+      });
+    }
+
+    // ব্রাউজারে ইনস্টল পপ-আপ হ্যান্ডেল করার কোড
+    let deferredPrompt;
+    const installSection = document.getElementById('install-section');
+    const installBtn = document.getElementById('install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installSection.style.display = 'block'; // ডাউনলোড বাটনটি দেখাবে
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User installed the app');
+        }
+        deferredPrompt = null;
+        installSection.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
